@@ -1,19 +1,19 @@
 /*
  * Orika - simpler, better and faster Java bean mapping
  *
- * Copyright (C) 2011-2013 Orika authors
+ *  Copyright (C) 2011-2019 Orika authors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package ma.glasnost.orika.metadata;
 
@@ -24,87 +24,80 @@ import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * TypeKey provides a way to uniquely identify a {Class, Type[]} pair without
- * storing references to either class object within itself.
- * 
- * @author matt.deboer@gmail.com
- * 
+ * TypeKey provides a way to uniquely identify a {Class, Type[]} pair without storing references to
+ * either class object within itself.
  */
 class TypeKey {
 
-	private static final Map<java.lang.reflect.Type, Integer> knownTypes = Collections.synchronizedMap(new WeakHashMap<>());
-	private static final AtomicInteger currentIndex = new AtomicInteger();
+  private static volatile Map<java.lang.reflect.Type, Integer> knownTypes =
+      Collections.synchronizedMap(new WeakHashMap<java.lang.reflect.Type, Integer>());
+  private static AtomicInteger currentIndex = new AtomicInteger();
+  private final byte[] bytes;
+  private final int hashCode;
 
-	/**
-	 * Calculates an identity for a Class, Type[] pair; avoids maintaining a
-	 * reference the actual class.
-	 *
-	 * @param rawType
-	 * @param typeArguments
-	 * @return
-	 */
-	static TypeKey valueOf(Class<?> rawType, java.lang.reflect.Type[] typeArguments) {
+  private TypeKey(byte[] bytes) {
+    this.bytes = bytes;
+    this.hashCode = Arrays.hashCode(this.bytes);
+  }
 
-		byte[] identityHashBytes = new byte[(typeArguments.length + 1) * 4];
-		intToByteArray(getTypeIndex(rawType), identityHashBytes, 0);
-		for (int i = 0, len = typeArguments.length; i < len; ++i) {
-			intToByteArray(getTypeIndex(typeArguments[i]), identityHashBytes, i + 1);
-		}
-		return new TypeKey(identityHashBytes);
-	}
+  /**
+   * Calculates an identity for a Class, Type[] pair; avoids maintaining a reference the actual
+   * class.
+   *
+   * @param rawType
+   * @param typeArguments
+   * @return
+   */
+  static TypeKey valueOf(Class<?> rawType, java.lang.reflect.Type[] typeArguments) {
 
-	private static int getTypeIndex(java.lang.reflect.Type type) {
-		Integer typeIndex = knownTypes.get(type);
-		if (typeIndex == null) {
-			synchronized (type) {
-				typeIndex = knownTypes.get(type);
-				if (typeIndex == null) {
-					typeIndex = currentIndex.getAndAdd(1);
-					knownTypes.put(type, typeIndex);
-				}
-			}
+    byte[] identityHashBytes = new byte[(typeArguments.length + 1) * 4];
+    intToByteArray(getTypeIndex(rawType), identityHashBytes, 0);
+    for (int i = 0, len = typeArguments.length; i < len; ++i) {
+      intToByteArray(getTypeIndex(typeArguments[i]), identityHashBytes, i + 1);
+    }
+    return new TypeKey(identityHashBytes);
+  }
 
-		}
-		return typeIndex;
-	}
+  private static int getTypeIndex(java.lang.reflect.Type type) {
+    Integer typeIndex = knownTypes.get(type);
+    if (typeIndex == null) {
+      synchronized (type) {
+        typeIndex = knownTypes.get(type);
+        if (typeIndex == null) {
+          typeIndex = currentIndex.getAndAdd(1);
+          knownTypes.put(type, typeIndex);
+        }
+      }
+    }
+    return typeIndex;
+  }
 
-	/**
-	 * Merge an int value into byte array, starting at the specified starting
-	 * index (occupies the next 4 bytes);
-	 *
-	 * @param value
-	 * @param bytes
-	 * @param startIndex
-	 */
-	private static void intToByteArray(int value, byte[] bytes, int startIndex) {
-		int i = startIndex * 4;
-		bytes[i] = (byte) (value >>> 24);
-		bytes[i + 1] = (byte) (value >>> 16);
-		bytes[i + 2] = (byte) (value >>> 8);
-		bytes[i + 3] = (byte) (value);
-	}
+  /**
+   * Merge an int value into byte array, starting at the specified starting index (occupies the next
+   * 4 bytes);
+   *
+   * @param value
+   * @param bytes
+   * @param startIndex
+   */
+  private static void intToByteArray(int value, byte[] bytes, int startIndex) {
+    int i = startIndex * 4;
+    bytes[i] = (byte) (value >>> 24);
+    bytes[i + 1] = (byte) (value >>> 16);
+    bytes[i + 2] = (byte) (value >>> 8);
+    bytes[i + 3] = (byte) (value);
+  }
 
-	private final byte[] bytes;
-	private final int hashCode;
+  public boolean equals(Object other) {
+    if (this == other) return true;
+    if (other == null) return false;
+    if (other.getClass() != getClass()) return false;
+    TypeKey otherKey = (TypeKey) other;
 
-	private TypeKey(byte[] bytes) {
-		this.bytes = bytes;
-		this.hashCode = Arrays.hashCode(this.bytes);
-	}
+    return Arrays.equals(this.bytes, otherKey.bytes);
+  }
 
-	public boolean equals(Object other) {
-		if (this == other)
-			return true;
-		if (other == null)
-			return false;
-		if (other.getClass() != getClass())
-			return false;
-		TypeKey otherKey = (TypeKey) other;
-
-		return Arrays.equals(this.bytes, otherKey.bytes);
-	}
-
-	public int hashCode() {
-		return hashCode;
-	}
+  public int hashCode() {
+    return hashCode;
+  }
 }

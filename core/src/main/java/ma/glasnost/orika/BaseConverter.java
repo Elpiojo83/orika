@@ -17,6 +17,8 @@
  */
 package ma.glasnost.orika;
 
+import ma.glasnost.orika.Converter;
+import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.metadata.Type;
 
 public abstract class BaseConverter<S,D> implements Converter<S,D> {

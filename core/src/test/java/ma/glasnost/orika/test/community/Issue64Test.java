@@ -1,3 +1,21 @@
+/*
+ * Orika - simpler, better and faster Java bean mapping
+ *
+ *  Copyright (C) 2011-2019 Orika authors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package ma.glasnost.orika.test.community;
 
 import ma.glasnost.orika.MapperFactory;
@@ -15,128 +33,133 @@ import static org.junit.Assert.assertNull;
 
 /**
  * Orika does not create intermediate property when mapping lists.
+ *
  * <p>
- * 
- * @see <a href="https://github.com/orika-mapper/orika/issues/64">https://github.com/orika-mapper/orika/issues</a>
+ *
+ * @see <a
+ *     href="https://github.com/orika-mapper/orika/issues/64">https://github.com/orika-mapper/orika/issues</a>
  */
 public class Issue64Test {
 
-    private final MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
-    private final Source source = new Source();
+  private final MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
+  private final Source source = new Source();
 
-    @BeforeClass
-    public static void setUp() throws Exception {
-        System.setProperty(OrikaSystemProperties.WRITE_SOURCE_FILES,"true");
-        System.setProperty(OrikaSystemProperties.WRITE_CLASS_FILES,"true");
+  @BeforeClass
+  public static void setUp() throws Exception {
+    System.setProperty(OrikaSystemProperties.WRITE_SOURCE_FILES, "true");
+    System.setProperty(OrikaSystemProperties.WRITE_CLASS_FILES, "true");
+  }
+
+  @Test
+  public void createIntermediateObjectForSingleProperty() {
+    mapperFactory.registerClassMap(
+        mapperFactory
+            .classMap(Source.class, Parent.class)
+            .fieldAToB("single", "child.nestedSingle"));
+    source.setSingle("SINGLE");
+
+    Parent target = mapperFactory.getMapperFacade(Source.class, Parent.class).map(source);
+
+    assertEquals("SINGLE", target.getChild().getNestedSingle());
+  }
+
+  @Test
+  public void createIntermediateObjectForListProperty() {
+    mapperFactory.registerClassMap(
+        mapperFactory
+            .classMap(Source.class, Parent.class)
+            .fieldAToB("list{}", "child.nestedList{}"));
+
+    source.setList(asList("A", "B"));
+
+    Parent target = mapperFactory.getMapperFacade(Source.class, Parent.class).map(source);
+
+    assertEquals(asList("A", "B"), target.getChild().getNestedList());
+  }
+
+  @Test
+  public void createIntermediateObjectForBothPropertiesWithNonNullSingle() {
+    mapperFactory.registerClassMap(
+        mapperFactory
+            .classMap(Source.class, Parent.class)
+            .fieldAToB("single", "child.nestedSingle")
+            .fieldAToB("list{}", "child.nestedList{}"));
+    source.setSingle("SINGLE");
+    source.setList(asList("A", "B"));
+
+    Parent target = mapperFactory.getMapperFacade(Source.class, Parent.class).map(source);
+
+    assertEquals("SINGLE", target.getChild().getNestedSingle());
+    assertEquals(asList("A", "B"), target.getChild().getNestedList());
+  }
+
+  @Test
+  public void createIntermediateObjectForBothPropertiesWithNullSingle() {
+    mapperFactory.registerClassMap(
+        mapperFactory
+            .classMap(Source.class, Parent.class)
+            .fieldAToB("list{}", "child.nestedList{}")
+            .fieldAToB("single", "child.nestedSingle"));
+    source.setSingle(null);
+    source.setList(asList("A", "B"));
+
+    Parent target = mapperFactory.getMapperFacade(Source.class, Parent.class).map(source);
+
+    assertNull(target.getChild().getNestedSingle());
+    assertEquals(asList("A", "B"), target.getChild().getNestedList());
+  }
+
+  public static class Source {
+    private String single;
+    private List<String> list;
+
+    public String getSingle() {
+      return single;
     }
 
-    @Test
-    public void createIntermediateObjectForSingleProperty() {
-        mapperFactory.registerClassMap(mapperFactory.classMap(Source.class, Parent.class)
-                .fieldAToB("single", "child.nestedSingle")
-        );
-        source.setSingle("SINGLE");
-
-        Parent target = mapperFactory.getMapperFacade(Source.class, Parent.class).map(source);
-
-        assertEquals("SINGLE", target.getChild().getNestedSingle());
+    public void setSingle(String single) {
+      this.single = single;
     }
 
-    @Test
-    public void createIntermediateObjectForListProperty() {
-        mapperFactory.registerClassMap(mapperFactory.classMap(Source.class, Parent.class)
-                .fieldAToB("list{}", "child.nestedList{}")
-        );
-
-        source.setList(asList("A", "B"));
-
-        Parent target = mapperFactory.getMapperFacade(Source.class, Parent.class).map(source);
-
-        assertEquals(asList("A", "B"), target.getChild().getNestedList());
+    public List<String> getList() {
+      return list;
     }
 
-    @Test
-    public void createIntermediateObjectForBothPropertiesWithNonNullSingle() {
-        mapperFactory.registerClassMap(mapperFactory.classMap(Source.class, Parent.class)
-                .fieldAToB("single", "child.nestedSingle")
-                .fieldAToB("list{}", "child.nestedList{}")
-        );
-        source.setSingle("SINGLE");
-        source.setList(asList("A", "B"));
+    public void setList(List<String> list) {
+      this.list = list;
+    }
+  }
 
-        Parent target = mapperFactory.getMapperFacade(Source.class, Parent.class).map(source);
+  public static class Parent {
+    private Child child;
 
-        assertEquals("SINGLE", target.getChild().getNestedSingle());
-        assertEquals(asList("A", "B"), target.getChild().getNestedList());
+    public Child getChild() {
+      return child;
     }
 
-    @Test
-    public void createIntermediateObjectForBothPropertiesWithNullSingle() {
-        mapperFactory.registerClassMap(mapperFactory.classMap(Source.class, Parent.class)
-                .fieldAToB("list{}", "child.nestedList{}")
-                .fieldAToB("single", "child.nestedSingle")
-        );
-        source.setSingle(null);
-        source.setList(asList("A", "B"));
+    public void setChild(Child child) {
+      this.child = child;
+    }
+  }
 
-        Parent target = mapperFactory.getMapperFacade(Source.class, Parent.class).map(source);
+  public static class Child {
+    private String nestedSingle;
+    private List<String> nestedList = new ArrayList<String>();
 
-        assertNull(target.getChild().getNestedSingle());
-        assertEquals(asList("A", "B"), target.getChild().getNestedList());
+    public String getNestedSingle() {
+      return nestedSingle;
     }
 
-    public static class Source {
-        private String single;
-        private List<String> list;
-
-        public String getSingle() {
-            return single;
-        }
-
-        public void setSingle(String single) {
-            this.single = single;
-        }
-
-        public List<String> getList() {
-            return list;
-        }
-
-        public void setList(List<String> list) {
-            this.list = list;
-        }
+    public void setNestedSingle(String nestedSingle) {
+      this.nestedSingle = nestedSingle;
     }
 
-    public static class Parent {
-        private Child child;
-
-        public Child getChild() {
-            return child;
-        }
-
-        public void setChild(Child child) {
-            this.child = child;
-        }
+    public List<String> getNestedList() {
+      return nestedList;
     }
 
-    public static class Child {
-        private String nestedSingle;
-        private List<String> nestedList = new ArrayList<>();
-
-        public String getNestedSingle() {
-            return nestedSingle;
-        }
-
-        public void setNestedSingle(String nestedSingle) {
-            this.nestedSingle = nestedSingle;
-        }
-
-        public List<String> getNestedList() {
-            return nestedList;
-        }
-
-        public void setNestedList(List<String> nestedList) {
-            this.nestedList = nestedList;
-        }
+    public void setNestedList(List<String> nestedList) {
+      this.nestedList = nestedList;
     }
-
+  }
 }

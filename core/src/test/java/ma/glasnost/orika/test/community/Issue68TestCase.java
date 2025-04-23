@@ -1,19 +1,19 @@
 /*
  * Orika - simpler, better and faster Java bean mapping
  *
- * Copyright (C) 2011-2013 Orika authors
+ *  Copyright (C) 2011-2019 Orika authors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package ma.glasnost.orika.test.community;
 
@@ -31,291 +31,284 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
-
 /**
  * How to handle infinit recursion for entities with bidirectional many-to-many relations.
- * <p>
- * 
- * @see <a href="https://code.google.com/archive/p/orika/issues/68">https://code.google.com/archive/p/orika/</a>
  *
+ * <p>
+ *
+ * @see <a
+ *     href="https://code.google.com/archive/p/orika/issues/68">https://code.google.com/archive/p/orika/</a>
  */
 public class Issue68TestCase {
 
-	@Test
-	public void testSimpleReverceCase() {
-		ConfigurableMapper mapper = new ConfigurableMapper() {
-			@Override
-			public void configure(MapperFactory mapperFactory) {
-				mapperFactory.classMap(InvoiceItem.class, InvoiceItemVO.class).byDefault().register();
-				mapperFactory.classMap(ProjectItem.class, ProjectItemVO.class).byDefault().register();
-				mapperFactory.classMap(Project.class, ProjectVO.class).byDefault().register();			
-			}
+  public static <T> Set<T> convertSet(Set<? extends T> sourceSet, Class<T> targetType) {
+    if (sourceSet == null) return null;
+    Set<T> set = new HashSet<T>();
+    set.addAll(sourceSet);
+    return set;
+  }
 
-		};
+  public static <T, E> Set<T> castSet(Set<E> sourceSet, Class<T> clazz) {
+    if (sourceSet == null) return null;
+    Set<T> set = new HashSet<T>();
+    set.addAll((Collection<? extends T>) sourceSet);
+    return set;
+  }
 
-		ProjectVO projectVO = new ProjectVO();
-		ProjectItemVO projectItemVO = new ProjectItemVO();
-		InvoiceItemVO invoiceitemVO = new InvoiceItemVO();
+  @Test
+  public void testSimpleReverceCase() {
+    ConfigurableMapper mapper =
+        new ConfigurableMapper() {
+          @Override
+          public void configure(MapperFactory mapperFactory) {
+            mapperFactory.classMap(InvoiceItem.class, InvoiceItemVO.class).byDefault().register();
+            mapperFactory.classMap(ProjectItem.class, ProjectItemVO.class).byDefault().register();
+            mapperFactory.classMap(Project.class, ProjectVO.class).byDefault().register();
+          }
+        };
 
-		projectItemVO.project = projectVO;
-		invoiceitemVO.project = projectVO;
+    ProjectVO projectVO = new ProjectVO();
+    ProjectItemVO projectItemVO = new ProjectItemVO();
+    InvoiceItemVO invoiceitemVO = new InvoiceItemVO();
 
-		projectVO.getProjectItems().add(projectItemVO);
-		projectVO.name = "Great project";
-		projectItemVO.getInvoiceItems().add(invoiceitemVO);
+    projectItemVO.project = projectVO;
+    invoiceitemVO.project = projectVO;
 
-		invoiceitemVO.getProjectItems().add(projectItemVO);
+    projectVO.getProjectItems().add(projectItemVO);
+    projectVO.name = "Great project";
+    projectItemVO.getInvoiceItems().add(invoiceitemVO);
 
-        InvoiceItemProxy invoiceItemProxy = BeanFactory.createInvoiceItemProxy();
-		mapper.map(invoiceitemVO, invoiceItemProxy);
+    invoiceitemVO.getProjectItems().add(projectItemVO);
 
-        ProjectProxy projectProxy = BeanFactory.createProjectProxy();
-        mapper.map(projectVO, projectProxy);
+    InvoiceItemProxy invoiceItemProxy = BeanFactory.createInvoiceItemProxy();
+    mapper.map(invoiceitemVO, invoiceItemProxy);
 
-        assertThat(projectVO.getName(), is(projectProxy.getName()));
-        assertThat(projectVO.getProjectItems(), hasSize(projectProxy.getProjectItems().size()));
-	}
+    ProjectProxy projectProxy = BeanFactory.createProjectProxy();
+    mapper.map(projectVO, projectProxy);
 
-	public static class BeanFactory {
-		public static ProjectProxy createProjectProxy() {
-			return new Project();
-		}
+    assertThat(projectVO.getName(), is(projectProxy.getName()));
+    assertThat(projectVO.getProjectItems(), hasSize(projectProxy.getProjectItems().size()));
+  }
 
-		public static ProjectItemProxy createProjectItemProxy() {
-			return new ProjectItem();
-		}
+  public static interface ProjectProxy {
 
-		public static InvoiceItemProxy createInvoiceItemProxy() {
-			return new InvoiceItem();
-		}
-	}
+    Set<ProjectItemProxy> getProjectItems();
 
-	public interface ProjectProxy {
+    void setProjectItems(Set<ProjectItemProxy> projectItems);
 
-		void setProjectItems(Set<ProjectItemProxy> projectItems);
+    String getName();
 
-		Set<ProjectItemProxy> getProjectItems();
+    void setName(String name);
+  }
 
-		void setName(String name);
+  public static interface ProjectItemProxy {
 
-		String getName();
+    Set<InvoiceItemProxy> getInvoiceItems();
 
-	}
+    void setInvoiceItems(Set<InvoiceItemProxy> invoiceItems);
 
-	public static class Project implements ProjectProxy {
+    ProjectProxy getProject();
 
-		private String name;
-		private Set<ProjectItem> projectItems = new HashSet<ProjectItem>();
+    void setProject(ProjectProxy project);
 
-		public String getName() {
-			return name;
-		}
+    String getName();
 
-		public void setName(String name) {
-			this.name = name;
-		}
+    void setName(String name);
+  }
 
-		public Set<ProjectItemProxy> getProjectItems() {
-			return convertSet(projectItems, ProjectItemProxy.class);
-		}
+  public static interface InvoiceItemProxy {
 
-		public void setProjectItems(Set<ProjectItemProxy> projectItems) {
-			this.projectItems = castSet(projectItems, ProjectItem.class);
-		}
-	}
+    ma.glasnost.orika.test.community.Issue68TestCase.ProjectProxy getProject();
 
-	public class ProjectItemProxyFactory implements
-			ObjectFactory<ProjectItemProxy> {
+    void setProject(ma.glasnost.orika.test.community.Issue68TestCase.ProjectProxy project);
 
-		/*
-		 * @Override public ProjectItemProxy create(Object source,
-		 * Type<ProjectItemProxy> destinationType) { ProjectItemProxy personDto
-		 * = new ProjectItem(); return personDto; }
-		 */
+    Set<ProjectItemProxy> getProjectItems();
 
-		public ProjectItemProxy create(Object source, MappingContext context) {
-			ProjectItemProxy personDto = new ProjectItem();
-			return personDto;
-		}
-	}
+    void setProjectItems(Set<ProjectItemProxy> projectItems);
+  }
 
-	public interface ProjectItemProxy {
+  public static class BeanFactory {
+    public static ProjectProxy createProjectProxy() {
+      return new Project();
+    }
 
-		void setInvoiceItems(Set<InvoiceItemProxy> invoiceItems);
+    public static ProjectItemProxy createProjectItemProxy() {
+      return new ProjectItem();
+    }
 
-		Set<InvoiceItemProxy> getInvoiceItems();
+    public static InvoiceItemProxy createInvoiceItemProxy() {
+      return new InvoiceItem();
+    }
+  }
 
-		void setProject(ProjectProxy project);
+  public static class Project implements ProjectProxy {
 
-		ProjectProxy getProject();
+    private String name;
+    private Set<ProjectItem> projectItems = new HashSet<ProjectItem>();
 
-		void setName(String name);
+    public String getName() {
+      return name;
+    }
 
-		String getName();
+    public void setName(String name) {
+      this.name = name;
+    }
 
-	}
+    public Set<ProjectItemProxy> getProjectItems() {
+      return convertSet(projectItems, ProjectItemProxy.class);
+    }
 
-	public static class ProjectItem implements ProjectItemProxy {
-		private String name;
+    public void setProjectItems(Set<ProjectItemProxy> projectItems) {
+      this.projectItems = castSet(projectItems, ProjectItem.class);
+    }
+  }
 
-		private Project project;
+  public static class ProjectItem implements ProjectItemProxy {
+    private String name;
 
-		private Set<InvoiceItem> invoiceItems = new HashSet<InvoiceItem>();
+    private Project project;
 
-		public String getName() {
-			return name;
-		}
+    private Set<InvoiceItem> invoiceItems = new HashSet<InvoiceItem>();
 
-		public void setName(String name) {
-			this.name = name;
-		}
+    public String getName() {
+      return name;
+    }
 
-		public ProjectProxy getProject() {
-			return project;
-		}
+    public void setName(String name) {
+      this.name = name;
+    }
 
-		public void setProject(ProjectProxy project) {
-			this.project = (Project) project;
-		}
+    public ProjectProxy getProject() {
+      return project;
+    }
 
-		public Set<InvoiceItemProxy> getInvoiceItems() {
-			return convertSet(invoiceItems, InvoiceItemProxy.class);
-		}
+    public void setProject(ProjectProxy project) {
+      this.project = (Project) project;
+    }
 
-		public void setInvoiceItems(Set<InvoiceItemProxy> invoiceItems) {
-			this.invoiceItems = castSet(invoiceItems, InvoiceItem.class);
-		}
-	}
+    public Set<InvoiceItemProxy> getInvoiceItems() {
+      return convertSet(invoiceItems, InvoiceItemProxy.class);
+    }
 
-	public interface InvoiceItemProxy {
+    public void setInvoiceItems(Set<InvoiceItemProxy> invoiceItems) {
+      this.invoiceItems = castSet(invoiceItems, InvoiceItem.class);
+    }
+  }
 
-		ma.glasnost.orika.test.community.Issue68TestCase.ProjectProxy getProject();
+  public static class InvoiceItem implements InvoiceItemProxy {
 
-		void setProjectItems(Set<ProjectItemProxy> projectItems);
+    private Project project;
 
-		Set<ProjectItemProxy> getProjectItems();
+    private Set<ProjectItem> projectItems = new HashSet<Issue68TestCase.ProjectItem>();
 
-		void setProject(
-				ma.glasnost.orika.test.community.Issue68TestCase.ProjectProxy project);
+    public ProjectProxy getProject() {
+      return project;
+    }
 
-	}
+    public void setProject(ProjectProxy project) {
+      this.project = (Project) project;
+    }
 
-	public static class InvoiceItem implements InvoiceItemProxy {
+    public Set<ProjectItemProxy> getProjectItems() {
+      return convertSet(projectItems, ProjectItemProxy.class);
+    }
 
-		private Project project;
+    public void setProjectItems(Set<ProjectItemProxy> projectItems) {
+      this.projectItems = castSet(projectItems, ProjectItem.class);
+    }
+  }
 
-		private Set<ProjectItem> projectItems = new HashSet<Issue68TestCase.ProjectItem>();
+  public static class ProjectVO {
+    private String name;
+    private Set<ProjectItemVO> projectItems = new HashSet<ProjectItemVO>();
 
-		public ProjectProxy getProject() {
-			return project;
-		}
+    public String toString() {
+      return "<ProjectVO name=" + name + " items=" + projectItems.toString() + ">";
+    }
 
-		public void setProject(ProjectProxy project) {
-			this.project = (Project) project;
-		}
+    public String getName() {
+      return name;
+    }
 
-		public Set<ProjectItemProxy> getProjectItems() {
-			return convertSet(projectItems, ProjectItemProxy.class);
-		}
+    public void setName(String name) {
+      this.name = name;
+    }
 
-		public void setProjectItems(Set<ProjectItemProxy> projectItems) {
-			this.projectItems = castSet(projectItems, ProjectItem.class);
-		}
-	}
+    public Set<ProjectItemVO> getProjectItems() {
+      return projectItems;
+    }
 
-	public static class ProjectVO {
-		private String name;
-		private Set<ProjectItemVO> projectItems = new HashSet<ProjectItemVO>();
+    public void setProjectItems(Set<ProjectItemVO> projectItems) {
+      this.projectItems = projectItems;
+    }
+  }
 
-		public String toString() {
-			return "<ProjectVO name=" + name + " items="
-					+ projectItems.toString() + ">";
-		}
+  public static class ProjectItemVO {
+    private String name;
 
-		public String getName() {
-			return name;
-		}
+    private ProjectVO project;
 
-		public void setName(String name) {
-			this.name = name;
-		}
+    private Set<InvoiceItemVO> invoiceItems = new HashSet<InvoiceItemVO>();
 
-		public Set<ProjectItemVO> getProjectItems() {
-			return projectItems;
-		}
+    public String getName() {
+      return name;
+    }
 
-		public void setProjectItems(Set<ProjectItemVO> projectItems) {
-			this.projectItems = projectItems;
-		}
-	}
+    public void setName(String name) {
+      this.name = name;
+    }
 
-	public static class ProjectItemVO {
-		private String name;
+    public ProjectVO getProject() {
+      return project;
+    }
 
-		private ProjectVO project;
+    public void setProject(ProjectVO project) {
+      this.project = project;
+    }
 
-		private final Set<InvoiceItemVO> invoiceItems = new HashSet<InvoiceItemVO>();
+    public Set<InvoiceItemVO> getInvoiceItems() {
+      return invoiceItems;
+    }
 
-		public String getName() {
-			return name;
-		}
+    // public void setInvoiceItems(Set<InvoiceItemVO> invoiceItems) {
+    // this.invoiceItems = invoiceItems;
+    // }
+  }
 
-		public void setName(String name) {
-			this.name = name;
-		}
+  public static class InvoiceItemVO {
 
-		public ProjectVO getProject() {
-			return project;
-		}
+    private ProjectVO project;
 
-		public void setProject(ProjectVO project) {
-			this.project = project;
-		}
+    private Set<ProjectItemVO> projectItems = new HashSet<ProjectItemVO>();
 
-		public Set<InvoiceItemVO> getInvoiceItems() {
-			return invoiceItems;
-		}
+    public ProjectVO getProject() {
+      return project;
+    }
 
-		// public void setInvoiceItems(Set<InvoiceItemVO> invoiceItems) {
-		// this.invoiceItems = invoiceItems;
-		// }
-	}
+    public void setProject(ProjectVO project) {
+      this.project = project;
+    }
 
-	public static class InvoiceItemVO {
+    public Set<ProjectItemVO> getProjectItems() {
+      return projectItems;
+    }
 
-		private ProjectVO project;
+    // public void setProjectItems(Set<ProjectItemVO> projectItems) {
+    // this.projectItems = projectItems;
+    // }
+  }
 
-		private final Set<ProjectItemVO> projectItems = new HashSet<ProjectItemVO>();
+  public class ProjectItemProxyFactory implements ObjectFactory<ProjectItemProxy> {
 
-		public ProjectVO getProject() {
-			return project;
-		}
+    /*
+     * @Override public ProjectItemProxy create(Object source,
+     * Type<ProjectItemProxy> destinationType) { ProjectItemProxy personDto
+     * = new ProjectItem(); return personDto; }
+     */
 
-		public void setProject(ProjectVO project) {
-			this.project = project;
-		}
-
-		public Set<ProjectItemVO> getProjectItems() {
-			return projectItems;
-		}
-
-		// public void setProjectItems(Set<ProjectItemVO> projectItems) {
-		// this.projectItems = projectItems;
-		// }
-	}
-
-	public static <T> Set<T> convertSet(Set<? extends T> sourceSet,
-			Class<T> targetType) {
-		if (sourceSet == null)
-			return null;
-		Set<T> set = new HashSet<T>(sourceSet);
-		return set;
-	}
-
-	public static <T, E> Set<T> castSet(Set<E> sourceSet, Class<T> clazz) {
-		if (sourceSet == null)
-			return null;
-		Set<T> set = new HashSet<T>((Collection<? extends T>) sourceSet);
-		return set;
-	}
+    public ProjectItemProxy create(Object source, MappingContext context) {
+      ProjectItemProxy personDto = new ProjectItem();
+      return personDto;
+    }
+  }
 }

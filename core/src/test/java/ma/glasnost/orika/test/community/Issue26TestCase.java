@@ -1,19 +1,19 @@
 /*
  * Orika - simpler, better and faster Java bean mapping
  *
- * Copyright (C) 2011-2013 Orika authors
+ *  Copyright (C) 2011-2019 Orika authors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package ma.glasnost.orika.test.community;
 
@@ -29,26 +29,30 @@ import org.junit.Test;
 
 /**
  * Generic super-type not recognized.
- * <p>
- * 
- * @see <a href="https://code.google.com/archive/p/orika/issues/26">https://code.google.com/archive/p/orika/</a>
  *
+ * <p>
+ *
+ * @see <a
+ *     href="https://code.google.com/archive/p/orika/issues/26">https://code.google.com/archive/p/orika/</a>
  */
 public class Issue26TestCase {
 
-	@Test
-	public void testMapping() {
-		MapperFactory mapperFactory = MappingUtil.getMapperFactory();
-		
-		mapperFactory.registerClassMap(
-		        mapperFactory.classMap(Order.class, OrderData.class)
-				.field("entityID", "orderId").byDefault().toClassMap());
-	
-		mapperFactory.getConverterFactory().registerConverter(new OrderIDConverter());
-		MapperFacade facade = mapperFactory.getMapperFacade();
-		
-		OrderData data = new OrderData(1234L);
-		Order order = facade.map(data, Order.class);
-		Assert.assertEquals(new OrderID(1234L), order.getEntityID());
-	}
+  @Test
+  public void testMapping() {
+    MapperFactory mapperFactory = MappingUtil.getMapperFactory();
+
+    mapperFactory.registerClassMap(
+        mapperFactory
+            .classMap(Order.class, OrderData.class)
+            .field("entityID", "orderId")
+            .byDefault()
+            .toClassMap());
+
+    mapperFactory.getConverterFactory().registerConverter(new OrderIDConverter());
+    MapperFacade facade = mapperFactory.getMapperFacade();
+
+    OrderData data = new OrderData(1234l);
+    Order order = facade.map(data, Order.class);
+    Assert.assertEquals(new OrderID(1234l), order.getEntityID());
+  }
 }

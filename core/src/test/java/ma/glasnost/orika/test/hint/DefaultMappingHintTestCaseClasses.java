@@ -1,19 +1,19 @@
 /*
  * Orika - simpler, better and faster Java bean mapping
  *
- * Copyright (C) 2011-2013 Orika authors
+ *  Copyright (C) 2011-2019 Orika authors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package ma.glasnost.orika.test.hint;
@@ -23,211 +23,204 @@ import java.util.List;
 
 public interface DefaultMappingHintTestCaseClasses {
 
-	interface Book {
-		
-		String getTitle();
+  public interface Book {
 
-		void setTitle(String title);
+    public String getTitle();
 
-		Author getAuthor();
+    public void setTitle(String title);
 
-		void setAuthor(Author author);
+    public Author getAuthor();
 
-	}
-	
-	interface Author {
+    public void setAuthor(Author author);
+  }
 
-		String getName();
-		
-		void setName(String name);
-		
-	}
-	
-	interface Library {
-		
-		String getTitle();
-		
-		List<Book> getBooks();
-	}
-	
-	class BookParent implements Book {
+  public interface Author {
 
-		private String title;
-		private Author author;
-		
-		
-		public String getTitle() {
-			return title;
-		}
+    public String getName();
 
-		public void setTitle(String title) {
-			this.title = title;
-		}
+    public void setName(String name);
+  }
 
-		public Author getAuthor() {
-			return author;
-		}
+  public interface Library {
 
-		public void setAuthor(Author author) {
-			this.author = author;
-		}
+    public String getTitle();
 
-	}
-	
-	class AuthorParent implements Author {
+    public List<Book> getBooks();
+  }
 
-		private String name;
-		
-		public String getName() {
-			return name;
-		}
+  public class BookParent implements Book {
 
-		public void setName(String name) {
-			this.name = name;
-		}
-		
-	}
-	
-	class LibraryParent implements Library {
-		
-		private String title;
+    private String title;
+    private Author author;
 
-		private List<Book> books;
+    public String getTitle() {
+      return title;
+    }
 
-		public String getTitle() {
-			return title;
-		}
+    public void setTitle(String title) {
+      this.title = title;
+    }
 
-		public void setTitle(String title) {
-			this.title = title;
-		}
+    public Author getAuthor() {
+      return author;
+    }
 
-		public List<Book> getBooks() {
-			if (books==null) {
-				books = new ArrayList<>();
-			}
-			return books;
-		}
+    public void setAuthor(Author author) {
+      this.author = author;
+    }
+  }
 
-	}
+  public class AuthorParent implements Author {
 
-	class BookChild extends BookParent {
-		private String additionalValue;
-		
-		public String getAdditionalValue() {
-			return additionalValue;
-		}
+    private String name;
 
-		public void setAdditionalValue(String additionalValue) {
-			this.additionalValue = additionalValue;
-		}
-	}
-	
-	class AuthorChild extends AuthorParent {
-		private String additionalValue;
-		
-		public String getAdditionalValue() {
-			return additionalValue;
-		}
+    public String getName() {
+      return name;
+    }
 
-		public void setAdditionalValue(String additionalValue) {
-			this.additionalValue = additionalValue;
-		}
-	}
-	
-	class LibraryChild extends LibraryParent {
-		private String additionalValue;
-		
-		public String getAdditionalValue() {
-			return additionalValue;
-		}
+    public void setName(String name) {
+      this.name = name;
+    }
+  }
 
-		public void setAdditionalValue(String additionalValue) {
-			this.additionalValue = additionalValue;
-		}
-	}
-	
-	
-	class AuthorDTO {
-	
-		private String name;
-		private String additionalValue;
-		
-		public String getMyAdditionalValue() {
-			return additionalValue;
-		}
+  public class LibraryParent implements Library {
 
-		public void setMyAdditionalValue(String additionalValue) {
-			this.additionalValue = additionalValue;
-		}
+    private String title;
 
-		public String getMyName() {
-			return name;
-		}
+    private List<Book> books;
 
-		public void setMyName(String name) {
-			this.name = name;
-		}
-	}
-	
-	class BookDTO {
+    public String getTitle() {
+      return title;
+    }
 
-		private String title;
-		private AuthorDTO author;
-		private String additionalValue;
-		
-		public String getMyAdditionalValue() {
-			return additionalValue;
-		}
+    public void setTitle(String title) {
+      this.title = title;
+    }
 
-		public void setMyAdditionalValue(String additionalValue) {
-			this.additionalValue = additionalValue;
-		}
+    public List<Book> getBooks() {
+      if (books == null) {
+        books = new ArrayList<Book>();
+      }
+      return books;
+    }
+  }
 
-		public String getMyTitle() {
-			return title;
-		}
+  public class BookChild extends BookParent {
+    private String additionalValue;
 
-		public void setMyTitle(String title) {
-			this.title = title;
-		}
+    public String getAdditionalValue() {
+      return additionalValue;
+    }
 
-		public AuthorDTO getMyAuthor() {
-			return author;
-		}
+    public void setAdditionalValue(String additionalValue) {
+      this.additionalValue = additionalValue;
+    }
+  }
 
-		public void setMyAuthor(AuthorDTO author) {
-			this.author = author;
-		}
-	}
-	
-	class LibraryDTO {
-		
-		private String title;
-		private List<BookDTO> books;
-		private String additionalValue;
-		
-		public String getMyAdditionalValue() {
-			return additionalValue;
-		}
+  public class AuthorChild extends AuthorParent {
+    private String additionalValue;
 
-		public void setMyAdditionalValue(String additionalValue) {
-			this.additionalValue = additionalValue;
-		}
-		
-		public String getMyTitle() {
-			return title;
-		}
+    public String getAdditionalValue() {
+      return additionalValue;
+    }
 
-		public void setMyTitle(String title) {
-			this.title = title;
-		}
+    public void setAdditionalValue(String additionalValue) {
+      this.additionalValue = additionalValue;
+    }
+  }
 
-		public List<BookDTO> getMyBooks() {
-			if (books==null) {
-				books = new ArrayList<>();
-			}
-			return books;
-		}
-	}
+  public class LibraryChild extends LibraryParent {
+    private String additionalValue;
+
+    public String getAdditionalValue() {
+      return additionalValue;
+    }
+
+    public void setAdditionalValue(String additionalValue) {
+      this.additionalValue = additionalValue;
+    }
+  }
+
+  public class AuthorDTO {
+
+    private String name;
+    private String additionalValue;
+
+    public String getMyAdditionalValue() {
+      return additionalValue;
+    }
+
+    public void setMyAdditionalValue(String additionalValue) {
+      this.additionalValue = additionalValue;
+    }
+
+    public String getMyName() {
+      return name;
+    }
+
+    public void setMyName(String name) {
+      this.name = name;
+    }
+  }
+
+  public class BookDTO {
+
+    private String title;
+    private AuthorDTO author;
+    private String additionalValue;
+
+    public String getMyAdditionalValue() {
+      return additionalValue;
+    }
+
+    public void setMyAdditionalValue(String additionalValue) {
+      this.additionalValue = additionalValue;
+    }
+
+    public String getMyTitle() {
+      return title;
+    }
+
+    public void setMyTitle(String title) {
+      this.title = title;
+    }
+
+    public AuthorDTO getMyAuthor() {
+      return author;
+    }
+
+    public void setMyAuthor(AuthorDTO author) {
+      this.author = author;
+    }
+  }
+
+  public class LibraryDTO {
+
+    private String title;
+    private List<BookDTO> books;
+    private String additionalValue;
+
+    public String getMyAdditionalValue() {
+      return additionalValue;
+    }
+
+    public void setMyAdditionalValue(String additionalValue) {
+      this.additionalValue = additionalValue;
+    }
+
+    public String getMyTitle() {
+      return title;
+    }
+
+    public void setMyTitle(String title) {
+      this.title = title;
+    }
+
+    public List<BookDTO> getMyBooks() {
+      if (books == null) {
+        books = new ArrayList<BookDTO>();
+      }
+      return books;
+    }
+  }
 }

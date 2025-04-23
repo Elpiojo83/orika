@@ -1,140 +1,135 @@
 /*
  * Orika - simpler, better and faster Java bean mapping
  *
- * Copyright (C) 2011-2013 Orika authors
+ *  Copyright (C) 2011-2019 Orika authors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package ma.glasnost.orika.test.community;
-
-import java.io.Serializable;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.Serializable;
 
 public class AutomaticStringConversionTestCase {
 
-	public static class CamposEntrada implements Serializable {
+  @Test
+  public void testMapCamposEntradaToCamposSalida() throws Exception {
 
-		private static final long serialVersionUID = -1751914753847603413L;
+    CamposEntrada source = new CamposEntrada();
+    source.setId(5);
+    source.setNumero(77);
+    source.setOrden("ASC");
+    source.setPrefijo("2");
 
-		private int numero;
-		private String prefijo;
-		private String orden;
-		private int id;
+    MapperFactory factory = new DefaultMapperFactory.Builder().build();
+    factory.classMap(CamposEntrada.class, CamposSalida.class).byDefault().register();
 
-		public int getNumero() {
-			return numero;
-		}
+    MapperFacade facade = factory.getMapperFacade();
 
-		public void setNumero(int numero) {
-			this.numero = numero;
-		}
+    CamposSalida result = facade.map(source, CamposSalida.class);
 
-		public String getPrefijo() {
-			return prefijo;
-		}
+    Assert.assertEquals(result.getId(), source.getId());
+    Assert.assertEquals(result.getNumero(), "" + source.getNumero());
+    Assert.assertEquals(result.getOrden(), source.getOrden());
+    Assert.assertEquals("" + result.getPrefijo(), source.getPrefijo());
+  }
 
-		public void setPrefijo(String prefijo) {
-			this.prefijo = prefijo;
-		}
+  public static class CamposEntrada implements Serializable {
 
-		public String getOrden() {
-			return orden;
-		}
+    private static final long serialVersionUID = -1751914753847603413L;
 
-		public void setOrden(String orden) {
-			this.orden = orden;
-		}
+    private int numero;
+    private String prefijo;
+    private String orden;
+    private int id;
 
-		public int getId() {
-			return id;
-		}
+    public int getNumero() {
+      return numero;
+    }
 
-		public void setId(int id) {
-			this.id = id;
-		}
+    public void setNumero(int numero) {
+      this.numero = numero;
+    }
 
-	}
+    public String getPrefijo() {
+      return prefijo;
+    }
 
-	public static class CamposSalida implements Serializable {
+    public void setPrefijo(String prefijo) {
+      this.prefijo = prefijo;
+    }
 
-		private static final long serialVersionUID = -1775063854225489603L;
+    public String getOrden() {
+      return orden;
+    }
 
-		private String numero;
-		private int prefijo;
-		private String orden;
-		private int id;
+    public void setOrden(String orden) {
+      this.orden = orden;
+    }
 
-		public String getNumero() {
-			return numero;
-		}
+    public int getId() {
+      return id;
+    }
 
-		public void setNumero(String numero) {
-			this.numero = numero;
-		}
+    public void setId(int id) {
+      this.id = id;
+    }
+  }
 
-		public int getPrefijo() {
-			return prefijo;
-		}
+  public static class CamposSalida implements Serializable {
 
-		public void setPrefijo(int prefijo) {
-			this.prefijo = prefijo;
-		}
+    private static final long serialVersionUID = -1775063854225489603L;
 
-		public String getOrden() {
-			return orden;
-		}
+    private String numero;
+    private int prefijo;
+    private String orden;
+    private int id;
 
-		public void setOrden(String orden) {
-			this.orden = orden;
-		}
+    public String getNumero() {
+      return numero;
+    }
 
-		public int getId() {
-			return id;
-		}
+    public void setNumero(String numero) {
+      this.numero = numero;
+    }
 
-		public void setId(int id) {
-			this.id = id;
-		}
+    public int getPrefijo() {
+      return prefijo;
+    }
 
-	}
+    public void setPrefijo(int prefijo) {
+      this.prefijo = prefijo;
+    }
 
-	@Test
-	public void testMapCamposEntradaToCamposSalida() throws Exception {
+    public String getOrden() {
+      return orden;
+    }
 
-		CamposEntrada source = new CamposEntrada();
-		source.setId(5);
-		source.setNumero(77);
-		source.setOrden("ASC");
-		source.setPrefijo("2");
-		
-		MapperFactory factory = new DefaultMapperFactory.Builder().build();
-		factory.classMap(CamposEntrada.class, CamposSalida.class)
-            .byDefault()
-            .register();
+    public void setOrden(String orden) {
+      this.orden = orden;
+    }
 
-		MapperFacade facade = factory.getMapperFacade();
-		
-		CamposSalida result = facade.map(source, CamposSalida.class);
-		
-		Assert.assertEquals(result.getId(), source.getId());
-		Assert.assertEquals(result.getNumero(), ""+source.getNumero());
-		Assert.assertEquals(result.getOrden(), source.getOrden());
-		Assert.assertEquals(""+result.getPrefijo(), source.getPrefijo());
-	}
+    public int getId() {
+      return id;
+    }
+
+    public void setId(int id) {
+      this.id = id;
+    }
+  }
 }
